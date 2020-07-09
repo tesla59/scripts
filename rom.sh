@@ -52,12 +52,9 @@ then
 	read buildvariant
 fi
 
-post_msg "<code>Build Triggered For PixysOS</code>"
-
 # Sync Source
 if [ $SYNCSOURCE = 1 ] || [ $SYNCSOURCE = "y" ]
 then
-        post_msg "<code>ReSyncing Source</code>"
         repo init -u https://github.com/PixysOS/manifest.git -b ten
         repo sync -j$( nproc --all)
 fi
@@ -65,11 +62,9 @@ fi
 # Sync Device Sources
 if [ $CLEANDEVICE = 1 ] || [ $CLEANDEVICE = "y" ]
 then
-        post_msg "<code>Cleaning Device Specific Sources</code>"
-        rm -rf device/xiaomi/violet
-        rm -rf kernel/xiaomi/sm6150
+        rm -rf device/xiaomi
+        rm -rf kernel/xiaomi
         rm -rf vendor/xiaomi
-        post_msg "<code>Cloning Repo</code>"
         git clone https://github.com/pixysos-devices/device_xiaomi_violet -b ten device/xiaomi/violet
         git clone https://github.com/pixysos-devices/vendor_xiaomi_violet -b ten vendor/xiaomi/violet
         git clone https://github.com/pixysos-devices/kernel_xiaomi_sm6150 -b ten kernel/xiaomi/sm6150 --depth=1
@@ -78,17 +73,14 @@ fi
 ## Clean Build
 if [ $CLEANBUILD = 1 ] || [ $CLEANBUILD = "y" ]
 then
-	post_msg "<code>Cleaning Sources</code>"
 	make clean && make clean
 fi
 
 # GApps
 if [ $gapps = 1 ] || [ "$gapps" = "y" ]
 then
-	post_msg "<code>Building with Gapps</code>"
 	export BUILD_WITH_GAPPS=true
 else
-	post_msg "<code>Building Non gapps build</code>"
 	export BUILD_WITH_GAPPS=false
 fi
 
@@ -101,7 +93,7 @@ then
 fi
 
 # Start Compiling
-post_msg "<code>Build Started</code>"
+post_msg "<code>Build Started for PixysOS</code>"
 
 BUILD_START=$(date +"%s")
 
@@ -119,8 +111,7 @@ then
 	post_msg "<code>Build Completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)</code>"
 	
 	# Upload Build
-	post_msg "<code>Uploading build to private Gdrive</code>"
-	rclone copy out/target/product/violet/P*.zip tesla:violet/pixys/$(date +%Y%m%d)/
+	rclone copy out/target/product/violet/P*.zip tesla:android/violet/pixys/$(date +%Y%m%d)/
 	ls out/target/product/violet/P*.zip > tmp
 	FILE=$(sed 's/^.\{,26\}//' tmp)
 	rm tmp
