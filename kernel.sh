@@ -25,15 +25,14 @@ post_doc() {
         -F caption="$2"
 }
 
-echo Make Clean Build? [y/n]
-read MAKECLEAN
-echo Build with dtbo? [y/n]
-read MAKEDTBO
+## Make Clean Build or not##
+MAKECLEAN=1
+## Build With Dtbo or not##
+MAKEDTBO=1
 
 # Cleaning Everything
 if [ $MAKECLEAN = 1 ] || [ "$MAKECLEAN" = "y" ]
 then
-	post_msg "<code>Cleaning Stuff</code>"
 	make O=out clean
 	make O=out mrproper
 	rm -rf out zipper
@@ -41,7 +40,6 @@ then
 fi
 
 # Cloning GCC and CLANG
-post_msg "<code>Cloning compiler</code>"
 git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 --depth=1 gcc
 git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 --depth=1 gcc32
 git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 --depth=1 clang
@@ -56,14 +54,13 @@ export ARCH=arm64 && export SUBARCH=arm64
 
 # Here we go
 BUILD_START=$(date +"%s")
-post_msg "<code>Compilation started</code>"
+post_msg "<code>Compilation started for Hydra Kernel</code>"
 make O=out ARCH=arm64 vendor/violet-perf_defconfig
 make -j$(nproc --all) O=out ARCH=arm64 CC="$(pwd)/clang/clang-r370808/bin/clang" CLANG_TRIPLE="aarch64-linux-gnu-" CROSS_COMPILE="$(pwd)/gcc/bin/aarch64-linux-android-" CROSS_COMPILE_ARM32="$(pwd)/gcc32/bin/arm-linux-androideabi-" | tee full.log
 
 # Building DTBO
 if [ $MAKEDTBO = 1 ] || [ "$MAKEDTBO" = "y" ]
 then
-	post_msg "<code>Building DTBO</code>"
 	python2 "scripts/ufdt/libufdt/utils/src/mkdtboimg.py" \
 	create "out/arch/arm64/boot/dtbo.img" --page_size=4096 "out/arch/arm64/boot/dts/qcom/sm6150-idp-overlay.dtbo"
 fi
@@ -77,9 +74,9 @@ then
 	cp out/arch/arm64/boot/dtbo.img zipper
 	cd zipper
 	zip -r9 hydrakernel-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M').zip * -x README.md hydrakernel-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M').zip
-	post_doc "hydrakernel-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M').zip" "<code>Build Completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)</code>"
-	rclone copy hydrakernel-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M').zip tesla:kernel/violet/$(date +%Y%m%d)/
+	post_doc "hydrakernel-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M').zip" "Build Completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)"
+	rclone copy hydrakernel-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M').zip tesla:android/kernel/violet/$(date +%Y%m%d)/
 	post_msg "https://downloads.tesla59.workers.dev/kernel/violet/$(date +%Y%m%d)/hydrakernel-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M').zip"
 else
-	post_doc "full.log" "<code>Build failed after %(($DIFF / 60)) mins and %(($DIFF % 60)) Second(s)</code>"
+	post_doc "full.log" "Build failed after %(($DIFF / 60)) mins and %(($DIFF % 60)) Second(s)"
 fi
