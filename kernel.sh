@@ -3,8 +3,6 @@
 
 # Export Your Telegram configs here
 # For security concern, dont push your chat ID and token publically
-export ID=""
-export token=""
 export MSG_URL="https://api.telegram.org/bot$token/sendMessage"
 export BUILD_URL="https://api.telegram.org/bot$token/sendDocument"
 
@@ -54,7 +52,7 @@ export ARCH=arm64 && export SUBARCH=arm64
 
 # Here we go
 BUILD_START=$(date +"%s")
-post_msg "<code>Compilation started for Hydra Kernel</code>"
+post_msg "<code>Compilation started for StromBreaker Kernel</code>"
 make O=out ARCH=arm64 vendor/violet-perf_defconfig
 make -j$(nproc --all) O=out ARCH=arm64 CC="$(pwd)/clang/clang-r370808/bin/clang" CLANG_TRIPLE="aarch64-linux-gnu-" CROSS_COMPILE="$(pwd)/gcc/bin/aarch64-linux-android-" CROSS_COMPILE_ARM32="$(pwd)/gcc32/bin/arm-linux-androideabi-" | tee full.log
 
@@ -62,7 +60,8 @@ make -j$(nproc --all) O=out ARCH=arm64 CC="$(pwd)/clang/clang-r370808/bin/clang"
 if [ $MAKEDTBO = 1 ] || [ "$MAKEDTBO" = "y" ]
 then
 	python2 "scripts/ufdt/libufdt/utils/src/mkdtboimg.py" \
-	create "out/arch/arm64/boot/dtbo.img" --page_size=4096 "out/arch/arm64/boot/dts/qcom/sm6150-idp-overlay.dtbo"
+	create "out/arch/arm64/boot/dtbo.img" --page_size=4096 "out/arch/arm64/boot/dts/xiaomi/violet-sm6150-overlay.dtbo"
+	cp out/arch/arm64/boot/dtbo.img zipper
 fi
 BUILD_END=$(date +"%s")
 DIFF=$((BUILD_END - BUILD_START))
@@ -70,13 +69,11 @@ DIFF=$((BUILD_END - BUILD_START))
 # Refining the kernel
 if [ -f out/arch/arm64/boot/Image.gz-dtb ]
 then
+	file="stormbreaker-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M')-dtbo.zip"
 	cp out/arch/arm64/boot/Image.gz-dtb zipper
-	cp out/arch/arm64/boot/dtbo.img zipper
 	cd zipper
-	zip -r9 hydrakernel-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M').zip * -x README.md hydrakernel-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M').zip
-	post_doc "hydrakernel-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M').zip" "Build Completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)"
-	rclone copy hydrakernel-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M').zip tesla:android/kernel/violet/$(date +%Y%m%d)/
-	post_msg "https://downloads.tesla59.workers.dev/kernel/violet/$(date +%Y%m%d)/hydrakernel-$(TZ=Asia/Kolkata date +'%Y%m%d-%H%M').zip"
+	zip -r9 $file * -x README.md $file
+	post_doc "$file" "Build Completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)"
 else
-	post_doc "full.log" "Build failed after %(($DIFF / 60)) mins and %(($DIFF % 60)) Second(s)"
+	post_doc "full.log" "Build failed after $(($DIFF / 60)) mins and $(($DIFF % 60)) Second(s)"
 fi
