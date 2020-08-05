@@ -42,11 +42,9 @@ function post_doc {
 	-F caption="$2"
 }
 
-function ccache {
-	ccache -M 50G
-	export USE_CCACHE=1
-	export CCACHE_EXEC=/usr/bin/ccache
-}
+ccache -M 50G
+export USE_CCACHE=1
+export CCACHE_EXEC=/usr/bin/ccache
 
 function build {
 	post_msg "<code>Build Started</code>"
@@ -75,7 +73,6 @@ function error {
 
 ##################################################################################################
 
-ccache
 build
 if [ -f out/target/product/$device/*$rom*.zip ]
 then
