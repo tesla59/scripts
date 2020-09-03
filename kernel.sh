@@ -12,6 +12,13 @@ MAKEDTBO=1
 
 MSG_URL="https://api.telegram.org/bot$token/sendMessage"
 BUILD_URL="https://api.telegram.org/bot$token/sendDocument"
+
+pin_message() {
+        curl -s -X POST "https://api.telegram.org/bot$token/pinChatMessage" \
+        -d chat_id="$ID" \
+        -d message_id="$1"
+}
+
 post_msg() {
         curl -s -X POST "$MSG_URL" -d chat_id="$ID" \
         -d "disable_web_page_preview=true" \
@@ -63,7 +70,8 @@ zip() {
 	cp out/arch/arm64/boot/Image.gz-dtb zipper
 	cd zipper
 	zip -r9 $file * -x README.md $file
-	post_doc "$file" "Build Completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)"
+	pinid=$(post_doc "$file" "Build Completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)" | jq .result.message_id)
+	pin_message $pinid
 }
 
 ################################################################################################################
