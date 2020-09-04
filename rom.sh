@@ -28,24 +28,24 @@ fi
 
 
 function post_msg {
-        curl -s -X POST "https://api.telegram.org/bot$token/sendMessage" -d chat_id="$ID" \
+        curl -s -X POST "https://api.telegram.org/bot$token/sendMessage" -d chat_id="$1" \
         -d "disable_web_page_preview=true" \
         -d "parse_mode=html" \
-        -d text="$1"
+        -d text="$2"
 }
 
 function post_doc {
-	curl --progress-bar -F document=@"$1" "https://api.telegram.org/bot$token/sendDocument" \
-	-F chat_id="$ID"  \
+	curl --progress-bar -F document=@"$2" "https://api.telegram.org/bot$token/sendDocument" \
+	-F chat_id="$1"  \
 	-F "disable_web_page_preview=true" \
 	-F "parse_mode=html" \
-	-F caption="$2"
+	-F caption="$3"
 }
 
 function pin_message {
         curl -s -X POST "https://api.telegram.org/bot$token/pinChatMessage" \
-        -d chat_id="$ID" \
-        -d message_id="$1"
+        -d chat_id="$1" \
+        -d message_id="$2"
 }
 
 ccache -M 50G
@@ -54,7 +54,7 @@ export CCACHE_EXEC=/usr/bin/ccache
 
 function build {
 	rm out/target/product/"$DEVICE"/*official*.zip
-	post_msg "<code>Build Started</code>"
+	post_msg "$ID" "<code>Build Started</code>"
 	BUILD_START=$(date +"%s")
 	. build/envsetup.sh
 	lunch "$ROM"_"$DEVICE"-$VARIANT
@@ -64,19 +64,19 @@ function build {
 }
 
 function upload {
-	post_msg "<code>Build Completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)</code>"
+	post_msg "$ID" "<code>Build Completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)</code>"
 	cd out/target/product/$DEVICE
 	file=$(ls *official*.zip)
         rclone copy $file tesla:android/$DEVICE/$ROM/
         LINK="https://downloads.tesla59.workers.dev/$DEVICE/$ROM/$(date +%Y%m%d)/$file"
-        pinid=$(post_msg "$LINK" | jq .result.message_id)
-	pin_message $pinid
+        pinid=$(post_msg "$ID" "$LINK" | jq .result.message_id)
+	pin_message "$ID" "$pinid"
 }
 
 function error {
 	cat log | grep -i failed -A5 > error.log
-        post_doc "error.log" "Build Failed After $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)"
-        post_msg "@tesla59  FEEX EET ASAAAP"
+        post_doc "$ID" "error.log" "Build Failed After $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)"
+        post_msg "$ID" "@tesla59  FEEX EET ASAAAP"
 }
 
 ##################################################################################################
