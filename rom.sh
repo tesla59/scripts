@@ -67,8 +67,9 @@ function upload {
 	post_msg "$ID" "<code>Build Completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) second(s)</code>"
 	cd out/target/product/$DEVICE
 	file=$(ls *official*.zip)
-        rclone copy $file tesla:android/$DEVICE/$ROM/
-        LINK="https://downloads.tesla59.workers.dev/$DEVICE/$ROM/$(date +%Y%m%d)/$file"
+	datecode=$(date +%Y%m%d)
+        rclone copy $file tesla:android/$DEVICE/$ROM/$datecode/
+        LINK="https://downloads.tesla59.workers.dev/$DEVICE/$ROM/$datecode/$file"
         pinid=$(post_msg "$ID" "$LINK" | jq .result.message_id)
 	pin_message "$ID" "$pinid"
 }
