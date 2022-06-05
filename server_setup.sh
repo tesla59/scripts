@@ -52,7 +52,7 @@ SetupPackages() {
 }
 
 # Create User and add to sudoer group
-if [ "$(cat /etc/passwd)" =~ $USER ]; then
+if [[ $USER != *"$(cat /etc/passwd)"* ]]; then
     # Create a new User
     CreateUser
     SetupSSH
