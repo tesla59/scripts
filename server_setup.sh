@@ -10,6 +10,12 @@ THEME="jonathan"
 # Setup Plugins git sudo zsh-interactive-cd zsh-autosuggestions zsh-syntax-highlighting
 # Setup packages
 
+BasicPackages() {
+    sudo apt update
+    sudo apt upgrade
+    sudo apt install git curl wget vim nano -y
+}
+
 CreateUser() {
     sudo useradd -U -m -d '/home/$USER' -s '/bin/zsh' $USER
     sudo usermod -aG sudo $USER
@@ -51,19 +57,27 @@ SetupPackages() {
     sudo snap install go --classic
 }
 
+# Install basic packages first
+BasicPackages()
+
 # Create User and add to sudoer group
 if [[ $USER != *"$(cat /etc/passwd)"* ]]; then
     # Create a new User
+    echo "Creating New User $USER"
     CreateUser
+    echo "Setting up SSH for new user"
     SetupSSH
 fi
 
 # Setup ZSH
+echo "Setting up ZSH"
 SetupZsh
 
 # Clone all plugins
+echo "Setting up Plugins"
 ClonePlugins
 
 # Setup Packages
+echo "Setting up Packages"
 SetupPackages
 
