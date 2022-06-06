@@ -11,9 +11,9 @@ THEME="jonathan"
 # Setup packages
 
 BasicPackages() {
-    sudo apt update
-    sudo apt upgrade
-    sudo apt install git curl wget vim nano -y
+    sudo apt update -y
+    sudo apt upgrade -y
+    sudo apt install git curl wget vim nano snap apt-utls -y
 }
 
 CreateUser() {
@@ -58,10 +58,12 @@ SetupPackages() {
 }
 
 # Install basic packages first
-BasicPackages()
+echo "Setting up Basic packages"
+BasicPackages
 
 # Create User and add to sudoer group
-if [[ $USER != *"$(cat /etc/passwd)"* ]]; then
+egrep "^$USER" /etc/passwd >/dev/null
+if [[ $? -ne 0 ]]; then
     # Create a new User
     echo "Creating New User $USER"
     CreateUser
