@@ -62,8 +62,7 @@ echo "Setting up Basic packages"
 BasicPackages
 
 # Create User and add to sudoer group
-egrep "^$USER" /etc/passwd >/dev/null
-if [[ $? -ne 0 ]]; then
+if ! grep -Fxq $USER /etc/passwd ; then
     # Create a new User
     echo "Creating New User $USER"
     CreateUser
